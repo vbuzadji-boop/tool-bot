@@ -28,8 +28,11 @@ def get_client():
         "https://www.googleapis.com/auth/drive"
     ]
 
-    creds_dict = json.loads(GOOGLE_CREDENTIALS)
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    if not GOOGLE_CREDENTIALS:
+    raise Exception("GOOGLE_CREDENTIALS не задана")
+
+creds_dict = json.loads(GOOGLE_CREDENTIALS)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 
     return gspread.authorize(creds)
 
