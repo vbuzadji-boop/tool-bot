@@ -14,7 +14,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 GOOGLE_CREDENTIALS = os.environ.get("GOOGLE_CREDENTIALS")
 TOOLS_SHEET_NAME = "tools"
 MOVES_SHEET_NAME = "moves"
-CREDENTIALS_FILE = "credentials.json"
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -27,11 +27,8 @@ def get_client():
         "https://www.googleapis.com/auth/drive"
     ]
 
-    if GOOGLE_CREDENTIALS:
-        creds_dict = json.loads(GOOGLE_CREDENTIALS)
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    else:
-        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    creds_dict = json.loads(GOOGLE_CREDENTIALS)
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 
     return gspread.authorize(creds)
 
