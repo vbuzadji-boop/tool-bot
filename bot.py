@@ -1,5 +1,5 @@
-import asyncio
-import logging
+import os
+import json
 from datetime import datetime
 
 from aiogram import Bot, Dispatcher, F
@@ -10,8 +10,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-BOT_TOKEN = "8615992008:AAFXLp7ynZktd8y6RB8ws3RwVJFoiuC4EqQ"
-SPREADSHEET_ID = "18ttIox80kAD4eJqJtQstxY0Ij6ghHxHbbCx86sD5Xng"
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+GOOGLE_CREDENTIALS = os.environ.get("GOOGLE_CREDENTIALS")
 TOOLS_SHEET_NAME = "tools"
 MOVES_SHEET_NAME = "moves"
 CREDENTIALS_FILE = "credentials.json"
@@ -26,9 +26,14 @@ def get_client():
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
     ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
-    return gspread.authorize(creds)
 
+    if GOOGLE_CREDENTIALS:
+        creds_dict = json.loads(GOOGLE_CREDENTIALS)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    else:
+        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+
+    return gspread.authorize(creds)
 
 def get_tools_sheet():
     client = get_client()
