@@ -240,30 +240,30 @@ async def text_handler(message: Message):
     chat_id = message.chat.id
     text = (message.text or "").strip()
 
-    if chat_id in user_states and user_states[chat_id]["mode"] == "take_wait_user":
+    # 👇 ВСТАВИЛИ СЮДА
+    if chat_id in user_states and user_states[chat_id]["mode"] == "repair_confirm":
         tool_id = user_states[chat_id]["tool_id"]
-        employee = text
-        last_action = f"выдан: {employee} ({datetime.now().strftime('%d.%m %H:%M')})"
 
-        update_tool(
-            tool_id=tool_id,
-            status="выдан",
-            user=employee,
-            last_action=last_action
-        )
+        if text.lower() in ["да", "yes"]:
+            update_tool(
+                tool_id=tool_id,
+                status="на ремонте"
+            )
 
-        add_move(
-            tool_id=tool_id,
-            action="выдача",
-            employee=employee,
-            obj="",
-            clicked_by=str(chat_id),
-            comment=""
-        )
+            add_move(
+                tool_id=tool_id,
+                action="ремонт",
+                employee="",
+                obj="",
+                clicked_by=str(chat_id),
+                comment="отправлен в ремонт"
+            )
+
+            await message.answer("🔧 Инструмент отправлен на ремонт")
+        else:
+            await message.answer("✅ Оставлен на складе")
 
         del user_states[chat_id]
-        await message.answer("Готово: инструмент отмечен как выдан.")
-        await send_tool_card(message, tool_id)
         return
 
     if chat_id in user_states and user_states[chat_id]["mode"] == "object_wait_name":
@@ -332,10 +332,14 @@ async def return_handler(callback: CallbackQuery):
         comment=""
     )
 
-    await callback.message.answer("Готово: инструмент возвращён на склад.")
-    await send_tool_card(callback.message, tool_id)
-    await callback.answer()
+    # 👇 НОВОЕ — спрашиваем про ремонт
+    user_states[callback.message.chat.id] = {
+        "mode": "repair_confirm",
+        "tool_id": tool_id
+    }
 
+    await callback.message.answer("Нужно отправить инструмент на ремонт? (да/нет)")
+    await callback.answer()
 
 @dp.callback_query(F.data.startswith("object:"))
 async def object_handler(callback: CallbackQuery):
