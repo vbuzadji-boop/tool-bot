@@ -1,6 +1,7 @@
 import os
 import asyncio
 import json
+import logging
 
 from aiohttp import web
 from aiogram import Bot, Dispatcher, F
@@ -13,6 +14,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 GOOGLE_CREDENTIALS = os.environ.get("GOOGLE_CREDENTIALS")
+SPREADSHEET_ID = os.environ.get("SPREADSHEET_ID")
 TOOLS_SHEET_NAME = "tools"
 MOVES_SHEET_NAME = "moves"
 
