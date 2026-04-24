@@ -361,7 +361,7 @@ async def start_web_server():
 
 
 async def main():
-    await start_web_server()
+    await start_web_server()   # ВАЖНО!
     await dp.start_polling(bot)
 
 
