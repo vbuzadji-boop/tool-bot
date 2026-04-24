@@ -197,44 +197,65 @@ async def start_handler(message: Message):
 
 
 @dp.message(F.text == "/list")
-async def list_tools_handler(message: Message):
+async def list_categories_handler(message: Message):
     tools = get_tools_list()
 
     if not tools:
         await message.answer("Список инструментов пуст.")
         return
 
-    lines = ["📋 Список инструментов:\n"]
+    categories = sorted(set(
+        str(tool.get("категория", "")).strip()
+        for tool in tools
+        if str(tool.get("категория", "")).strip()
+    ))
 
-    for tool in tools:
+    if not categories:
+        await message.answer("Категории не найдены. Проверь колонку 'категория'.")
+        return
+
+    kb = InlineKeyboardBuilder()
+
+    for category in categories:
+        kb.button(
+            text=category,
+            callback_data=f"cat:{category}"
+        )
+
+    kb.adjust(1)
+
+    await message.answer(
+        "📂 Выберите категорию:",
+        reply_markup=kb.as_markup()
+    )
+
+@dp.callback_query(F.data.startswith("cat:"))
+async def category_handler(callback: CallbackQuery):
+    category = callback.data.split(":", 1)[1]
+    tools = get_tools_list()
+
+    filtered_tools = [
+        tool for tool in tools
+        if str(tool.get("категория", "")).strip() == category
+    ]
+
+    if not filtered_tools:
+        await callback.message.answer("В этой категории нет инструментов.")
+        await callback.answer()
+        return
+
+    lines = [f"📂 {category}\n"]
+
+    for tool in filtered_tools:
         tool_id = str(tool.get("id", "")).strip()
         name = str(tool.get("название", "")).strip()
-        lines.append(f"{tool_id} — {name}")
+        status = str(tool.get("статус", "")).strip() or "-"
+        lines.append(f"{tool_id} — {name} | {status}")
 
-    text = "\n".join(lines)
+    lines.append("\n👉 Введите ID инструмента, например: T014")
 
-    if len(text) > 3500:
-        parts = []
-        current = ""
-
-        for line in lines:
-            if len(current) + len(line) + 1 > 3500:
-                parts.append(current)
-                current = line
-            else:
-                current += ("\n" if current else "") + line
-
-        if current:
-            parts.append(current)
-
-        for part in parts:
-            await message.answer(part)
-    else:
-        await message.answer(text)
-
-    await message.answer("👉 Введите ID инструмента, например: T001")
-
-
+    await callback.message.answer("\n".join(lines))
+    await callback.answer()
 @dp.message(F.text)
 async def text_handler(message: Message):
     chat_id = message.chat.id
