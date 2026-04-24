@@ -31,8 +31,8 @@ def get_client():
     if not GOOGLE_CREDENTIALS:
         raise Exception("GOOGLE_CREDENTIALS не задана")
 
-creds_dict = json.loads(GOOGLE_CREDENTIALS)
-creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    creds_dict = json.loads(GOOGLE_CREDENTIALS)
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 
     return gspread.authorize(creds)
 
