@@ -261,7 +261,35 @@ async def text_handler(message: Message):
     chat_id = message.chat.id
     text = (message.text or "").strip()
 
-    # 👇 ВСТАВИЛИ СЮДА
+    # если ждём имя сотрудника после кнопки "Забрал"
+    if chat_id in user_states and user_states[chat_id]["mode"] == "take_wait_user":
+        tool_id = user_states[chat_id]["tool_id"]
+        employee = text
+        last_action = f"выдан: {employee} ({datetime.now().strftime('%d.%m %H:%M')})"
+
+        update_tool(
+            tool_id=tool_id,
+            status="выдан",
+            user=employee,
+            last_action=last_action
+        )
+
+        add_move(
+            tool_id=tool_id,
+            action="выдача",
+            employee=employee,
+            obj="",
+            clicked_by=str(chat_id),
+            comment=""
+        )
+
+        del user_states[chat_id]
+
+        await message.answer("✅ Готово: инструмент отмечен как выдан.")
+        await send_tool_card(message, tool_id)
+        return
+
+    # если ждём ответ после кнопки "Вернул" — ремонт да/нет
     if chat_id in user_states and user_states[chat_id]["mode"] == "repair_confirm":
         tool_id = user_states[chat_id]["tool_id"]
 
